@@ -1,0 +1,1 @@
+An Android application built with Kotlin and ONNX Android runtime for HAR, specifically for detecting walking and running activity. ONNX model not included.
