@@ -9,8 +9,9 @@ import org.apache.commons.math3.transform.TransformType
 import java.io.File
 import java.io.FileOutputStream
 import kotlin.math.abs
-import kotlin.math.floor
 import kotlin.math.ln
+import kotlin.math.max
+import kotlin.math.min
 import kotlin.math.pow
 import kotlin.math.sqrt
 
@@ -108,6 +109,43 @@ fun extractFeatures(data: Array<FloatArray>): FloatArray {
         fftEnergyX, fftEnergyY, fftEnergyZ, fftEnergyMagnitude,
         fftEntropyX, fftEntropyY, fftEntropyZ, fftEntropyMagnitude
     )
+}
+
+class Evaluation(walk: Int, predictedWalk: Int, run: Int, predictedRun: Int) {
+    private val walk = walk.toFloat()
+    private val predictedWalk = predictedWalk.toFloat()
+    private val run = run.toFloat()
+    private val predictedRun = predictedRun.toFloat()
+
+    private fun tp(): Float {
+        return min(walk, predictedWalk) + min(run, predictedRun)
+    }
+
+    private fun fp(): Float {
+        return max(0f, predictedWalk - min(walk, predictedWalk)) + max(0f, predictedRun - min(run, predictedRun))
+    }
+
+    private fun fn(): Float {
+        return max(0f, walk - min(walk, predictedWalk)) + max(0f, run - min(run, predictedRun))
+    }
+
+    fun calculatePrecision(): Float {
+        val tp = tp()
+        val fp = fp()
+        return (tp / (tp + fp)).takeUnless { it.isNaN() } ?: 0F
+    }
+
+    fun calculateRecall(): Float {
+        val tp = tp()
+        val fn = fn()
+        return (tp / (tp + fn)).takeUnless { it.isNaN() } ?: 0F
+    }
+
+    fun calculateF1Score(): Float {
+        val precision = calculatePrecision()
+        val recall = calculateRecall()
+        return ((2 * precision * recall) / (precision + recall)).takeUnless { it.isNaN() } ?: 0F
+    }
 }
 
 fun displayTimeFromSeconds(seconds: Int): String {
